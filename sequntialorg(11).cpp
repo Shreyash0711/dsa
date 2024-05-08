@@ -1,135 +1,133 @@
-#include <iostream>
-#include <fstream>
-#include <string>
-
+#include<iostream>
+#include<fstream>
+#include<string.h>
 using namespace std;
-
-// Structure to hold student information
-struct Student {
-    string rollNumber;
-    string name;
-    string division;
-    string address;
-};
-
-// Function prototypes
-void addStudentInfo();
-void deleteStudentInfo();
-void displayStudentInfo();
-
-// Function to read student information from file into string
-string readStudentInfo() {
-    ifstream file("student_info.txt");
-    string content;
-    if (file.is_open()) {
-        string line;
-        while (getline(file, line)) {
-            content += line + "\n";
-        }
-        file.close();
-    } else {
-        cerr << "Error opening file." << endl;
-    }
-    return content;
+class student
+ {
+typedef struct stud
+{
+int roll;
+char name[10];
+char div;
+char add[10];
+}stud;
+stud rec;
+public:
+void create();
+void display();
+int search();
+void Delete();
+ };
+void student::create()
+ {
+char ans;
+ofstream fout;
+fout.open("stud.dat",ios::out|ios::binary);
+do
+{
+cout<<"\n\tEnter Roll No of Student​: ";
+cin>>rec.roll;
+cout<<"\n\tEnter a Name of Student ​: ";
+cin>>rec.name;
+cout<<"\n\tEnter a Division of Student : ";
+cin>>rec.div;
+cout<<"\n\tEnter a Address of Student  : ";
+cin>>rec.add;
+fout.write((char *)&rec,sizeof(stud))<<flush;
+cout<<"\n\tDo You Want to Add More Records(y/n): ";
+cin>>ans;
+}while(ans=='y'||ans=='Y');
+fout.close();
+ }
+void student::display()
+ {
+ifstream fin;
+fin.open("stud.dat",ios::in|ios::binary);
+fin.seekg(0,ios::beg);
+cout<<"\n\tThe Content of File are:\n";
+cout<<"\n\tRoll\tName\tDiv\tAddress";
+while(fin.read((char *)&rec,sizeof(stud)))
+{
+if(rec.roll!=-1)
+    ​cout<<"\n\t"<<rec.roll<<"\t"<<rec.name<<"\t"<<rec.div<<"\t"<<rec.add;
 }
-
-// Function to write student information from string to file
-void writeStudentInfo(const string& content) {
-    ofstream file("student_info.txt");
-    if (file.is_open()) {
-        file << content;
-        file.close();
-    } else {
-        cerr << "Error opening file." << endl;
-    }
+fin.close();
+ }
+int student::search()
+ {
+int r,i=0;
+ifstream fin;
+fin.open("stud.dat",ios::in|ios::binary);
+fin.seekg(0,ios::beg);
+cout<<"\n\tEnter a Roll No: ";
+cin>>r;
+while(fin.read((char *)&rec,sizeof(stud)))
+{
+if(rec.roll==r)
+{
+cout<<"\n\tRecord Found...\n";
+cout<<"\n\tRoll\tName\tDiv\tAddress";
+cout<<"\n\t"<<rec.roll<<"\t"<<rec.name<<"\t"<<rec.div<<"\t"<<rec.add;
+return i;
 }
-
-// Main function
-int main() {
-    while (true) {
-        cout << "\n1. Add Student Information" << endl;
-        cout << "2. Delete Student Information" << endl;
-        cout << "3. Display Student Information" << endl;
-        cout << "4. Exit" << endl;
-        
-        int choice;
-        cout << "Enter your choice: ";
-        cin >> choice;
-        
-        switch (choice) {
-            case 1:
-                addStudentInfo();
-                break;
-            case 2:
-                deleteStudentInfo();
-                break;
-            case 3:
-                displayStudentInfo();
-                break;
-            case 4:
-                return 0;
-            default:
-                cout << "Invalid choice. Please try again." << endl;
-        }
-    }
-    return 0;
+i++;
 }
-
-// Function to add student information
-void addStudentInfo() {
-    string rollNumber, name, division, address;
-    cout << "Enter Roll Number: ";
-    cin >> rollNumber;
-    cout << "Enter Name: ";
-    cin >> name;
-    cout << "Enter Division: ";
-    cin >> division;
-    cout << "Enter Address: ";
-    cin >> address;
-    
-    string studentInfo = rollNumber + "," + name + "," + division + "," + address + "\n";
-    string content = readStudentInfo();
-    content += studentInfo;
-    writeStudentInfo(content);
-    
-    cout << "Student information added successfully." << endl;
+fin.close();
+return 0;
+ }
+void student::Delete()
+ {
+int pos;
+pos=search();
+fstream f;
+f.open("stud.dat",ios::in|ios::out|ios::binary);
+f.seekg(0,ios::beg);
+if(pos==0)
+{
+cout<<"\n\tRecord Not Found";
+return;
 }
-
-// Function to delete student information
-void deleteStudentInfo() {
-    string rollNumber;
-    cout << "Enter Roll Number to delete: ";
-    cin >> rollNumber;
-    
-    string content = readStudentInfo();
-    size_t pos = content.find(rollNumber + ",");
-    if (pos != string::npos) {
-        size_t nextLine = content.find("\n", pos);
-        if (nextLine != string::npos) {
-            content.erase(pos, nextLine - pos + 1);
-            writeStudentInfo(content);
-            cout << "Student information deleted successfully." << endl;
-            return;
-        }
-    }
-    cout << "Student not found." << endl;
+ 
+int offset=pos*sizeof(stud);
+f.seekp(offset);
+rec.roll=-1;
+strcpy(rec.name,"NULL");
+rec.div='N';
+strcpy(rec.add,"NULL");
+f.write((char *)&rec,sizeof(stud));
+f.seekg(0);
+f.close();
+cout<<"\n\tRecord Deleted";
+ }
+ 
+int main()
+ {
+student obj;
+int ch,key;
+char ans;
+do
+{
+cout<<"\n\t***** Student Information *****";
+cout<<"\n\t1. Create\n\t2. Display\n\t3. Delete\n\t4. Search\n\t5. Exit";
+cout<<"\n\t..... Enter Your Choice: ";
+cin>>ch;
+switch(ch)
+{
+case 1: obj.create();
+break;
+case 2: obj.display();
+break;
+case 3: obj.Delete();
+break;
+case 4: key=obj.search();
+if(key==0)
+cout<<"\n\tRecord Not Found...\n";
+break;
+case 5:
+break;
 }
-
-// Function to display student information
-void displayStudentInfo() {
-    string rollNumber;
-    cout << "Enter Roll Number to display: ";
-    cin >> rollNumber;
-    
-    string content = readStudentInfo();
-    size_t pos = content.find(rollNumber + ",");
-    if (pos != string::npos) {
-        size_t nextLine = content.find("\n", pos);
-        if (nextLine != string::npos) {
-            string studentInfo = content.substr(pos, nextLine - pos);
-            cout << studentInfo << endl;
-            return;
-        }
-    }
-    cout << "Student not found." << endl;
-}
+cout<<"\n\t..... Do You Want to Continue in Main Menu(y/n): ";
+cin>>ans;
+}while(ans=='y'||ans=='Y');
+return 1;
+ }
