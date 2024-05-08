@@ -1,113 +1,232 @@
-/*
-PROBLEM STATEMENT:
-
-Dictionary  stores  keywords  &  its  meanings.  Provide  facility  for  adding  new  keywords, deleting keywords, updating values of any entry.
-Also,display whole data sorted in ascending or descending order. 
-Find how many maximum comparisons may require for finding any keyword. Use height balance tree and find the complexity for finding a keyword.
-
-*/
-#include <iostream>
-#include <string.h>
+#include<iostream>
 using namespace std;
-
-struct node // Node Declaration
-{
-    string label;
-    //char label[10];
-    int ch_count;
-    struct node *child[10];
-} * root;
-
-class GT // Class Declaration
-{
+class Node {
 public:
-    void create_tree();
-    void display(node *r1);
-
-    GT()
-    {
-        root = NULL;
-    }
+	Node* Ln, *Rn;
+	string key, val;
+	int height;
 };
+class Avl {
+public:
+	Node* create(Node* root, string key, string val) {
+	root = new Node();
+	root->key = key;
+	root->val = val;
+	root->Ln = NULL;
+	root->Rn = NULL;
+	root->height = 1;
+	return root;
+	}
 
-void GT::create_tree()
-{
-    int tbooks, tchapters, i, j, k;
-    root = new node;
-    cout << "Enter name of book : ";
-    cin.get();
-    getline(cin, root->label);
-    cout << "Enter number of chapters in book : ";
-    cin >> tchapters;
-    root->ch_count = tchapters;
-    for (i = 0; i < tchapters; i++)
-    {
-        root->child[i] = new node;
-        cout << "Enter the name of Chapter " << i + 1 << " : ";
-        cin.get();
-        getline(cin, root->child[i]->label);
-        cout << "Enter number of sections in Chapter : " << root->child[i]->label << " : ";
-        cin >> root->child[i]->ch_count;
-        for (j = 0; j < root->child[i]->ch_count; j++)
-        {
-            root->child[i]->child[j] = new node;
-            cout << "Enter Name of Section " << j + 1 << " : ";
-            cin.get();
-            getline(cin, root->child[i]->child[j]->label);
-        }
-    }
-}
+	Node* insert(Node* root, string key, string val) {
+	if (root == NULL)
+	return create(root, key, val);
+	else if (key < root->key) {
+	root->Ln = insert(root->Ln, key, val);
+	} else if (key > root->key)
 
-void GT::display(node *r1)
-{
-    int i, j, k, tchapters;
-    if (r1 != NULL)
-    {
-        cout << "\n-----Book Hierarchy---";
-        cout << "\n Book title : " << r1->label;
-        tchapters = r1->ch_count;
-        for (i = 0; i < tchapters; i++)
-        {
+	{
+	root->Rn = insert(root->Rn, key, val);
+	}
+	return root;
+	}
 
-            cout << "\nChapter " << i + 1;
-            cout << " : " << r1->child[i]->label;
-            cout << "\nSections : ";
-            for (j = 0; j < r1->child[i]->ch_count; j++)
-            {
-                cout << "\n"<< r1->child[i]->child[j]->label;
-            }
-        }
-    }
-    cout << endl;
-}
+	int height(Node *temp) {
+	int h = 0;
+	if (temp != NULL) {
+	int l_height = height(temp->Ln);
+	int r_height = height(temp->Rn);
+	int max_height = max(l_height, r_height);
+	h = max_height + 1;
+	}
+	return h;
+	}
 
-int main()
-{
-    int choice;
-    GT gt;
-    while (1)
-    {
-        cout << "-----------------" << endl;
-        cout << "Book Tree Creation" << endl;
-        cout << "-----------------" << endl;
-        cout << "1.Create" << endl;
-        cout << "2.Display" << endl;
-        cout << "3.Quit" << endl;
-        cout << "Enter your choice : ";
-        cin >> choice;
-        switch (choice)
-        {
-        case 1:
-            gt.create_tree();
-        case 2:
-            gt.display(root);
-            break;
-        case 3:
-            cout << "Thanks for using this program!!!";
-            exit(1);
-        default:
-            cout << "Wrong choice!!!" << endl;
-        }
-    }
-    return 0;
+	int balFac(Node* temp) {
+	int l_height = height(temp->Ln);
+	int r_height = height(temp->Rn);
+	int b_factor = l_height - r_height;
+	return b_factor;
+	}
+
+	Node* rr(Node* root) {
+	Node *temp;
+	temp = root->Rn;
+	root->Rn = temp->Ln;
+	temp->Ln = root;
+	return temp;
+	}
+
+	Node* ll(Node* root) {
+	Node *temp;
+	temp = root->Ln;
+	root->Ln = temp->Rn;
+	temp->Rn = root;
+	return temp;
+	}
+
+	Node* lr(Node* root) {
+	Node *temp;
+	temp = root->Ln;
+	root->Ln = rr(temp);
+	return ll(root);
+	}
+
+	Node* rl(Node* root) {
+	Node *temp;
+	temp = root->Ln;
+	root->Rn = ll(temp);
+	return rr(root);
+	}
+
+	Node* balance(Node* root) {
+	int bal_factor = balFac(root);
+	if (bal_factor > 1) {
+	if (balFac(root->Ln) > 0)
+	root = ll(root);
+	else
+	root = lr(root);
+	} else if (bal_factor < -1) {
+	if (balFac(root->Rn) > 0)
+	root = rl(root);
+	else
+	root = rr(root);
+	}
+	return root;
+	}
+
+	void inorder(Node *root) {
+	if (root == NULL)
+	return;
+	inorder(root->Ln);
+	cout << root->key << "  " << root->val<<endl;
+	inorder(root->Rn);
+	}
+
+	void postorder(Node *root) {
+	if (root == NULL)
+	return;
+	postorder(root->Ln);
+	postorder(root->Rn);
+	cout << root->key << "  " << root->val<<endl;
+	}
+
+	void modify(Node* root, string modKey) {
+	string NewMeaning;
+	if (modKey.compare(root->key) < 0)
+	modify(root->Ln, modKey);
+	else if (modKey.compare(root->key) > 0)
+	modify(root->Rn, modKey);
+	else if (modKey.compare(root->key) == 0) {
+	cout << "\nWord Found!\nWord: " << root->key << "\t" << root->val;
+	cout << "\nEnter new Meaning : ";
+	cin >> NewMeaning;
+	root->val = NewMeaning;
+	cout << "\nDictionary Modified!";
+	}
+	}
+
+	void delet(Node* root, string delKey) {
+	Node* current = root;
+	Node* temp;
+	bool isleft = 0;
+	while (current != NULL && current->key.compare(delKey) != 0) {
+	if (current->key.compare(delKey) > 0) {
+	temp = current;
+	isleft = 1;
+	current = current->Ln;
+	} else if (current->key.compare(delKey) < 0) {
+	temp = current;
+	isleft = 0;
+	current = current->Rn;
+	}
+	}
+	if (current->key.compare(delKey) == 0) {
+	if (current->Ln == NULL && current->Rn == NULL) {
+	if (isleft == 1) {
+	temp->Ln = NULL;
+	} else
+	temp->Rn = NULL;
+	} else {
+	if (isleft == 1) {
+	if (current->Ln == NULL) {
+	temp->Ln = current->Rn;
+	}
+
+	else if (current->Rn == NULL) {
+	temp->Ln = current->Ln;
+
+	}
+
+	else {
+	string k = current->Ln->key;
+	string v = current->Ln->val;
+	temp->Ln = current->Rn;
+	insert(root, k, v);
+	}
+	} else {
+	if (current->Ln == NULL) {
+	temp->Rn = current->Rn;
+	}
+
+	else if (current->Rn == NULL) {
+	temp->Rn = current->Ln;
+	}
+
+	else {
+	string k = current->Ln->key;
+	string v = current->Ln->val;
+	temp->Rn = current->Rn;
+	insert(root, k, v);
+	}
+	}
+	}
+	cout << "\nDeleted!";
+	} else {
+	cout << "\nWord. not found!";
+	}
+	return;
+	}
+};
+int main() {
+	int choice, dchoice;
+	string key, val, modKey, delKey;
+	Node *root = new Node();
+	Avl avlObj;
+	do {
+	cout
+	<< "\n1. Add word\n2. Delete word\n3. Update word\n4. Display\n5. Exit\n";
+	cin >> choice;
+	switch (choice) {
+	case 1:
+	cout << "\nEnter the word and meaning \n";
+	cin >> key >> val;
+	root = avlObj.insert(root, key, val);
+	break;
+	case 2:
+	cout << "\nEnter the word you want to delete : \n";
+	cin >> delKey;
+	avlObj.delet(root, delKey);
+	break;
+	case 3:
+	cout << "\nEnter the word you want to modify : \n";
+	cin >> modKey;
+	avlObj.modify(root, modKey);
+	break;
+	case 4:
+	cout
+	<< "\n1.Display in ascending order\n2.Display in descending order\n";
+	cin >> dchoice;
+	if (dchoice == 1)
+	avlObj.inorder(root);
+	else if (dchoice == 2)
+	avlObj.postorder(root);
+	break;
+	case 5:
+	break;
+	default:
+	cout << "\nWrong option. Try again\n";
+	}
+	} while (choice != 5);
+	return 0;
 }
